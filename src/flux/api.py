@@ -1,9 +1,11 @@
+import base64
 import io
 import os
 import time
 from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
 from PIL import Image
 
 API_URL = "https://api.bfl.ml"
@@ -11,7 +13,11 @@ API_ENDPOINTS = {
     "flux.1-pro": "flux-pro",
     "flux.1-dev": "flux-dev",
     "flux.1.1-pro": "flux-pro-1.1",
+    "flux.1.1-pro-ultra": "flux-pro-1.1-ultra",
 }
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class ApiException(Exception):
@@ -47,6 +53,8 @@ class ImageRequest:
         guidance: float | None = None,
         interval: float | None = None,
         safety_tolerance: int | None = None,
+        image_prompt: str | None = None,
+        image_prompt_strength: float | None = None,  # Add this parameter
         # behavior of this class
         validate: bool = True,
         launch: bool = True,
@@ -95,6 +103,10 @@ class ImageRequest:
                 raise ValueError(f"interval must be between 1 and 4, got {interval}")
             elif safety_tolerance is not None and not (0 <= safety_tolerance <= 6.0):
                 raise ValueError(f"safety_tolerance must be between 0 and 6, got {interval}")
+            elif image_prompt_strength is not None and not (0.0 <= image_prompt_strength <= 1.0):
+                raise ValueError(
+                    f"image_prompt_strength must be between 0 and 1, got {image_prompt_strength}"
+                )
 
             if name == "flux.1-dev":
                 if interval is not None:
@@ -114,8 +126,17 @@ class ImageRequest:
             "guidance": guidance,
             "interval": interval,
             "safety_tolerance": safety_tolerance,
+            "image_prompt_strength": image_prompt_strength,
         }
         self.request_json = {key: value for key, value in self.request_json.items() if value is not None}
+
+        if image_prompt is not None:
+            if not os.path.exists(image_prompt):
+                raise ValueError(f"Image prompt file not found: {image_prompt}")
+            with open(image_prompt, "rb") as f:
+                image_bytes = f.read()
+                image_b64 = base64.b64encode(image_bytes).decode()
+                self.request_json["image_prompt"] = image_b64
 
         self.request_id: str | None = None
         self.result: dict | None = None
