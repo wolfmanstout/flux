@@ -229,5 +229,5 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,windows,macos,visualstudiocode,python
 
-/outputs/api/
+/outputs/
 /src/flux/_version.py
