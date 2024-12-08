@@ -54,7 +54,7 @@ class ImageRequest:
         interval: float | None = None,
         safety_tolerance: int | None = None,
         image_prompt: str | None = None,
-        image_prompt_strength: float | None = None,  # Add this parameter
+        image_prompt_strength: float | None = None,
         # behavior of this class
         validate: bool = True,
         launch: bool = True,
